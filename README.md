@@ -7,7 +7,7 @@ This module also provides Spark schemas for boto3 responses.
 
 **Installation**
 
-    python -m pip install git+ssh://git@gitlab.com/nopsteam/metadata_producer.git
+    pip install git+https://github.com/nops-io/metadata_producer.git@master
 
 **Usage**:
 
