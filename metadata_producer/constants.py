@@ -1,7 +1,6 @@
 from pyrsistent import freeze
 
 
-
 SINLE_REGION_SERVICES = freeze(["iam", "s3", "cloudfront"])
 
 # fmt: off
@@ -19,6 +18,7 @@ METAMAP = freeze(
         "ec2_addresses": {"fetch_method": "describe_addresses", "response_key": "Addresses"},
         "ec2_images": {"fetch_method": "describe_images", "response_key": "Images", "kwargs": {"Owners": ["self"]}},
         "ec2_instances": {"fetch_method": "describe_instances", "page_key": "Reservations", "response_key": "Instances"},
+        "ec2_reserved_instances": {"fetch_method": "describe_reserved_instances", "response_key": "ReservedInstances"},
         "ec2_flow_logs": {"fetch_method": "describe_flow_logs", "response_key": "FlowLogs"},
         "ec2_nat_gateways": {"fetch_method": "describe_nat_gateways", "response_key": "NatGateways"},
         "ec2_network_interfaces": {"fetch_method": "describe_network_interfaces", "response_key": "NetworkInterfaces"},
