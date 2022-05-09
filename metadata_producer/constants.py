@@ -1,12 +1,14 @@
-from pyrsistent import freeze
+from collections import OrderedDict
 
+from pyrsistent import freeze
 
 SINLE_REGION_SERVICES = freeze(["iam", "s3", "cloudfront"])
 
 # fmt: off
 METAMAP = freeze(
-    {
+    OrderedDict({
         "autoscaling_auto_scaling_groups": {"fetch_method": "describe_auto_scaling_groups", "response_key": "AutoScalingGroups"},
+        "ec2_vpcs": {"fetch_method": "describe_vpcs", "response_key": "Vpcs"},
         "cloudformation_stacks": {"fetch_method": "describe_stacks", "response_key": "Stacks"},
         "cloudfront_distributions": {"fetch_method": "list_distributions", "response_key": "Items", "page_key": "DistributionList"},
         "cloudtrail_trails": {"fetch_method": "describe_trails", "response_key": "trailList"},
@@ -16,18 +18,16 @@ METAMAP = freeze(
         "config_delivery_channels": {"fetch_method": "describe_delivery_channels", "response_key": "DeliveryChannels"},
         "dynamodb_tables": {"fetch_method": "list_tables", "response_key": "TableNames"},
         "ec2_addresses": {"fetch_method": "describe_addresses", "response_key": "Addresses"},
+        "ec2_volumes": {"fetch_method": "describe_volumes", "response_key": "Volumes"},
         "ec2_images": {"fetch_method": "describe_images", "response_key": "Images", "kwargs": {"Owners": ["self"]}},
         "ec2_instances": {"fetch_method": "describe_instances", "page_key": "Reservations", "response_key": "Instances"},
-        "ec2_reserved_instances": {"fetch_method": "describe_reserved_instances", "response_key": "ReservedInstances"},
+        "ec2_security_groups": {"fetch_method": "describe_security_groups", "response_key": "SecurityGroups"},
+        "ec2_snapshots": {"fetch_method": "describe_snapshots", "response_key": "Snapshots", "kwargs": {"OwnerIds": ["self"]}},
         "ec2_flow_logs": {"fetch_method": "describe_flow_logs", "response_key": "FlowLogs"},
         "ec2_nat_gateways": {"fetch_method": "describe_nat_gateways", "response_key": "NatGateways"},
         "ec2_network_interfaces": {"fetch_method": "describe_network_interfaces", "response_key": "NetworkInterfaces"},
         "ec2_route_tables": {"fetch_method": "describe_route_tables", "response_key": "RouteTables"},
-        "ec2_security_groups": {"fetch_method": "describe_security_groups", "response_key": "SecurityGroups"},
-        "ec2_snapshots": {"fetch_method": "describe_snapshots", "response_key": "Snapshots", "kwargs": {"OwnerIds": ["self"]}},
         "ec2_subnets": {"fetch_method": "describe_subnets", "response_key": "Subnets"},
-        "ec2_volumes": {"fetch_method": "describe_volumes", "response_key": "Volumes"},
-        "ec2_vpcs": {"fetch_method": "describe_vpcs", "response_key": "Vpcs"},
         "ecs_clusters": {"fetch_method": "list_clusters", "response_key": "clusterArns"},
         "eks_clusters": {"fetch_method": "list_clusters", "response_key": "clusters"},
         "elasticache_cache_clusters": {"fetch_method": "describe_cache_clusters", "response_key": "CacheClusters"},
@@ -54,6 +54,51 @@ METAMAP = freeze(
         "resourcegroupstaggingapi_keys": {"fetch_method": "get_tag_keys", "response_key": "TagKeys"},
         "workspaces_workspaces": {"fetch_method": "describe_workspaces", "response_key": "Workspaces"},
         "workspaces_workspace_directories": {"fetch_method": "describe_workspace_directories", "response_key": "Directories"},
-    }
+        "ec2_ebs_volumes": {"fetch_method": "describe_volumes", "response_key": "Volumes"},
+    })
+)
+
+RELATIONSHIPS_MAPPING = freeze(
+    {
+        "ec2_instances": {
+            "volume_fk": {
+                "related_table": "ec2_volumes",
+                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.block_device_mappings::jsonb) AS e  INNER JOIN ec2_volumes ec2_volumes_tmp ON (e -> 'Ebs' ->> 'VolumeId') = ec2_volumes_tmp.volume_id""",
+                "related_column": "volume_id",
+            },
+            "image_fk": {
+                "related_table": "ec2_images",
+                "related_column": "image_id",
+            },
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            },
+        },
+        "ec2_security_groups": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            },
+        },
+        "elbv2_load_balancers": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            },
+            "security_groups": {
+                "many_to_many": True,
+                "m2m_table_name": "elb_security_groups_m2m",
+                "related_table": "ec2_security_groups",
+                "related_column": "group_id",
+            }
+        },
+        "ec2_snapshots": {
+            "volume_fk": {
+                "related_table": "ec2_volumes",
+                "related_column": "volume_id",
+            }
+        }
+    },
 )
 # fmt: on

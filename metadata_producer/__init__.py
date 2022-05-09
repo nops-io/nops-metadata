@@ -26,6 +26,16 @@ class MetaFetcher:
         schema = serializer.schema(metadata_type)
         return schema
 
+    def postgres_schema(self, metadata_type: str) -> dict[str, Any]:
+        postgres_custom_types = {
+            "string": "varchar",
+            "long": "integer",
+            "double": "float",
+        }
+        serializer = SparkAWSSchemaSerializer(custom_types=postgres_custom_types)
+        schema = serializer.schema(metadata_type)
+        return schema
+
     @property
     def metadata_types(self) -> list[str]:
         return list(METAMAP.keys())
