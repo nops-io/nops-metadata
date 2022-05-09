@@ -1,4 +1,5 @@
 from typing import Any
+from typing import Optional
 
 from botocore import xform_name
 from botocore.loaders import Loader
@@ -13,6 +14,12 @@ spark_type_map = {"structure": "struct", "list": "array"}
 
 
 class SparkAWSSchemaSerializer:
+    def __init__(
+        self,
+        custom_types: Optional[dict] = None,
+    ):
+        self.custom_types = custom_types or {}
+
     def schema(self, metadata_type: str = "ec2_instances"):
 
         service = metadata_type.split("_")[0]
@@ -79,7 +86,7 @@ class SparkAWSSchemaSerializer:
     def _parse_shape_long(self, shape, name):
         return {
             "name": name,
-            "type": "long",
+            "type": self.custom_types.get("long", "long"),
             "nullable": True,
             "metadata": {},
         }
@@ -87,7 +94,7 @@ class SparkAWSSchemaSerializer:
     def _parse_shape_double(self, shape, name):
         return {
             "name": name,
-            "type": "double",
+            "type": self.custom_types.get("double", "double"),
             "nullable": True,
             "metadata": {},
         }
@@ -132,7 +139,7 @@ class SparkAWSSchemaSerializer:
     def _parse_shape_string(self, shape, name):
         output = {
             "name": name,
-            "type": "string",
+            "type": self.custom_types.get("string", "string"),
             "nullable": True,
             "metadata": {},
         }
