@@ -21,6 +21,7 @@ METAMAP = freeze(
         "ec2_volumes": {"fetch_method": "describe_volumes", "response_key": "Volumes"},
         "ec2_images": {"fetch_method": "describe_images", "response_key": "Images", "kwargs": {"Owners": ["self"]}},
         "ec2_instances": {"fetch_method": "describe_instances", "page_key": "Reservations", "response_key": "Instances"},
+        "ec2_reserved_instances": {"fetch_method": "describe_reserved_instances", "response_key": "ReservedInstances"},
         "ec2_security_groups": {"fetch_method": "describe_security_groups", "response_key": "SecurityGroups"},
         "ec2_snapshots": {"fetch_method": "describe_snapshots", "response_key": "Snapshots", "kwargs": {"OwnerIds": ["self"]}},
         "ec2_flow_logs": {"fetch_method": "describe_flow_logs", "response_key": "FlowLogs"},
@@ -54,7 +55,6 @@ METAMAP = freeze(
         "resourcegroupstaggingapi_keys": {"fetch_method": "get_tag_keys", "response_key": "TagKeys"},
         "workspaces_workspaces": {"fetch_method": "describe_workspaces", "response_key": "Workspaces"},
         "workspaces_workspace_directories": {"fetch_method": "describe_workspace_directories", "response_key": "Directories"},
-        "ec2_ebs_volumes": {"fetch_method": "describe_volumes", "response_key": "Volumes"},
     })
 )
 
