@@ -98,7 +98,52 @@ RELATIONSHIPS_MAPPING = freeze(
                 "related_table": "ec2_volumes",
                 "related_column": "volume_id",
             }
-        }
+        },
+        "ec2_addresses": {
+            "instance_fk": {
+                "related_table": "ec2_instances",
+                "related_column": "instance_id",
+            },
+            "network_interface_fk": {
+                "related_table": "ec2_network_interfaces",
+                "related_column": "network_interface_id",
+            }
+        },
+        "ec2_route_tables": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            }
+        },
+        "ec2_subnets": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            }
+        },
+        "rds_db_snapshots": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            }
+        },
+        "ec2_flow_logs": {
+            "resource_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+                "this_table_column": "resource_id"
+            }
+        },
+        "ec2_nat_gateways": {
+            "subnet_fk": {
+                "related_table": "ec2_subnets",
+                "related_column": "subnet_id",
+            },
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            }
+        },
     },
 )
 # fmt: on
