@@ -74,6 +74,10 @@ RELATIONSHIPS_MAPPING = freeze(
                 "related_table": "ec2_vpcs",
                 "related_column": "vpc_id",
             },
+            "subnet_fk": {
+                "related_table": "ec2_subnets",
+                "related_column": "subnet_id",
+            },
         },
         "ec2_security_groups": {
             "vpc_fk": {
@@ -143,6 +147,84 @@ RELATIONSHIPS_MAPPING = freeze(
                 "related_table": "ec2_vpcs",
                 "related_column": "vpc_id",
             }
+        },
+        "autoscaling_auto_scaling_groups": {
+            "instances": {
+                "many_to_many": True,
+                "m2m_table_name": "autoscaling_enabled_ec2_instances",
+                "related_table": "ec2_instances",
+                "related_column": "instance_id",
+                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.instances::jsonb) AS e INNER JOIN ec2_instances ec2_instances_tmp ON (e ->> 'InstanceId') = ec2_instances_tmp.instance_id;""",
+            }
+        },
+        "rds_db_instances": {
+            "kms_key_pk": {
+                "related_table": "kms_keys",
+                "related_column": "key_arn",
+                "this_table_column": "kms_key_id",
+            },
+            "vpc_security_groups": {
+                "many_to_many": True,
+                "m2m_table_name": "rds_security_groups",
+                "related_table": "ec2_security_groups",
+                "related_column": "group_id",
+                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.vpc_security_groups::jsonb) AS e INNER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'VpcSecurityGroupId') = ec2_security_groups_tmp.group_id;""",
+            }
+        },
+        "efs_file_systems": {
+            "kms_key_pk": {
+                "related_table": "kms_keys",
+                "related_column": "key_arn",
+                "this_table_column": "kms_key_id",
+            },
+        },
+        "elasticache_cache_clusters": {
+            "security_groups": {
+                "many_to_many": True,
+                "m2m_table_name": "elasticache_security_groups",
+                "related_table": "ec2_security_groups",
+                "related_column": "group_id",
+                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.security_groups::jsonb) AS e INNER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'SecurityGroupId') = ec2_security_groups_tmp.group_id;""",
+            },
+            "replication_group_pk": {
+                "related_table": "elasticache_replication_groups",
+                "related_column": "replication_group_id",
+            },
+            "cache_subnet_group_name_fk": {
+                "related_table": "elasticache_subnet_groups",
+                "related_column": "cache_subnet_group_name",
+            }
+        },
+        "elasticache_replication_groups": {
+            "kms_key_pk": {
+                "related_table": "kms_keys",
+                "related_column": "key_arn",
+                "this_table_column": "kms_key_id",
+            },
+        },
+        "elasticache_subnet_groups": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            },
+            "subnets": {
+                "many_to_many": True,
+                "m2m_table_name": "elasticache_subnet_groups_m2m",
+                "related_table": "ec2_subnets",
+                "related_column": "subnet_id",
+                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.subnets::jsonb) AS e INNER JOIN ec2_subnets ec2_subnets_tmp ON (e ->> 'SubnetIdentifier') = ec2_subnets_tmp.subnet_id;""",
+            },
+        },
+        "redshift_clusters": {
+            "vpc_fk": {
+                "related_table": "ec2_vpcs",
+                "related_column": "vpc_id",
+            },
+            "kms_key_pk": {
+                "related_table": "kms_keys",
+                "related_column": "key_arn",
+                "this_table_column": "kms_key_id",
+            },
         },
     },
 )
