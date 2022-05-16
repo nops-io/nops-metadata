@@ -226,6 +226,51 @@ RELATIONSHIPS_MAPPING = freeze(
                 "this_table_column": "kms_key_id",
             },
         },
+        "cloudtrail_trails": {
+            "s3_bucket_fk": {
+                "related_table": "s3_buckets",
+                "related_column": "name",
+                "this_table_column": "s3_bucket_name",
+            },
+            "kms_key_pk": {
+                "related_table": "kms_keys",
+                "related_column": "key_arn",
+                "this_table_column": "kms_key_id",
+            },
+        },
+        "config_delivery_channels": {
+            "s3_bucket_fk": {
+                "related_table": "s3_buckets",
+                "related_column": "name",
+                "this_table_column": "s3_bucket_name",
+            },
+        },
+        "cloudformation_stacks": {
+            "parent_stack_fk": {
+                "related_table": "cloudformation_stacks",
+                "related_column": "stack_id",
+                "this_table_column": "parent_id",
+            },
+            "iam_role_fk": {
+                "related_table": "iam_roles",
+                "related_column": "arn",
+                "this_table_column": "role_arn",
+            },
+        },
+        "neptune_db_instances": {
+            "vpc_security_groups": {
+                "many_to_many": True,
+                "m2m_table_name": "neptune_security_groups",
+                "related_table": "ec2_security_groups",
+                "related_column": "group_id",
+                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.vpc_security_groups::jsonb) AS e INNER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'VpcSecurityGroupId') = ec2_security_groups_tmp.group_id;""",
+            },
+            "kms_key_pk": {
+                "related_table": "kms_keys",
+                "related_column": "key_arn",
+                "this_table_column": "kms_key_id",
+            },
+        }
     },
 )
 # fmt: on
