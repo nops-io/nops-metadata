@@ -37,19 +37,8 @@ class MetaFetcher:
         return schema
 
     @property
-    def metadata_types(self, type_filter: list[str] = []) -> list[str]:
-        all_metadata_types = list(METAMAP.keys())
-        metadata_types = []
-
-        if type_filter:
-            for tf in type_filter:
-                if tf in all_metadata_types:
-                    metadata_types.append(tf)
-
-        if metadata_types:
-            return metadata_types
-        else:
-            return all_metadata_types
+    def metadata_types(self) -> list[str]:
+        return list(METAMAP.keys())
 
     def fetch(self, metadata_type: str, region_name: str, call_kwargs: dict[str, Any] = {}) -> Iterator[dict[str, Any]]:
 
