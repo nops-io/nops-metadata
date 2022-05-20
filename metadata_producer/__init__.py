@@ -37,16 +37,28 @@ class MetaFetcher:
         return schema
 
     @property
-    def metadata_types(self) -> list[str]:
-        return list(METAMAP.keys())
+    def metadata_types(self, type_filter: list[str] = []) -> list[str]:
+        all_metadata_types = list(METAMAP.keys())
+        metadata_types = []
 
-    def fetch(self, metadata_type: str, region_name: str) -> Iterator[dict[str, Any]]:
+        if type_filter:
+            for tf in type_filter:
+                if tf in all_metadata_types:
+                    metadata_types.append(tf)
+
+        if metadata_types:
+            return metadata_types
+        else:
+            return all_metadata_types
+
+    def fetch(self, metadata_type: str, region_name: str, call_kwargs: dict[str, Any] = {}) -> Iterator[dict[str, Any]]:
+
         return resource_listing(
             session=self.session,
             metaname=metadata_type,
             fetch_method=METAMAP[metadata_type]["fetch_method"],
             response_key=METAMAP[metadata_type]["response_key"],
             page_key=METAMAP[metadata_type].get("page_key", ""),
-            call_kwargs=thaw(METAMAP[metadata_type].get("kwargs", {})),
+            call_kwargs=thaw(METAMAP[metadata_type].get("kwargs", {}).update(call_kwargs)),
             region_name=region_name,
         )
