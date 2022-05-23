@@ -40,6 +40,13 @@ class MetaFetcher:
     def metadata_types(self) -> list[str]:
         return list(METAMAP.keys())
 
+    def get_call_kwargs(self, kwargs: dict[str, Any]) -> dict[str, Any]:
+        default_kwargs = METAMAP[metadata_type].get("kwargs", {})
+        call_kwargs = default_kwargs.update(kwargs)
+
+        return call_kwargs if call_kwargs else return {}
+
+
     def fetch(self, metadata_type: str, region_name: str, call_kwargs: dict[str, Any] = {}) -> Iterator[dict[str, Any]]:
 
         return resource_listing(
@@ -48,6 +55,6 @@ class MetaFetcher:
             fetch_method=METAMAP[metadata_type]["fetch_method"],
             response_key=METAMAP[metadata_type]["response_key"],
             page_key=METAMAP[metadata_type].get("page_key", ""),
-            call_kwargs=thaw(METAMAP[metadata_type].get("kwargs", {}).update(call_kwargs)),
+            call_kwargs=thaw(self.get_call_kwargs(kwargs=call_kwargs)),
             region_name=region_name,
         )
