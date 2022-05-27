@@ -18,5 +18,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.8",
-    install_requires=["boto3>1.21.0", "pyrsistent>0.18.0"],
+    install_requires=["boto3>=1.17.102", "pyrsistent>=0.17.3"],
 )

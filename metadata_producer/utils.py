@@ -11,7 +11,7 @@ def _extract_keyed_page(page: dict, page_key: str, response_key: str) -> Iterato
     keyed_page = page[page_key]
 
     if isinstance(keyed_page, dict):
-        for element in keyed_page[response_key]:
+        for element in keyed_page.get(response_key, []):
             yield element
     else:
         for section in keyed_page:
