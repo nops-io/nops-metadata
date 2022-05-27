@@ -1,13 +1,27 @@
 from typing import Any
 from typing import Iterator
-from pyrsistent import thaw
 
 import boto3
+from pyrsistent import freeze
+from pyrsistent import thaw
 
 from .constants import METAMAP
 from .constants import SINLE_REGION_SERVICES
-from .utils import resource_listing
 from .schema import SparkAWSSchemaSerializer
+from .utils import resource_listing
+
+METAMAP_DETAILS = freeze(
+    {
+        "ecs_clusters_details": {
+            "fetch_method": "describe_clusters",
+            "parameter_name": "clusters",
+            "response_key": "clusters",
+            "metadata_type": "ecs_clusters",
+            "listing_key": "clusterArns",
+            "kwargs": {"include": ["ATTACHMENTS", "CONFIGURATIONS", "SETTINGS", "STATISTICS", "TAGS"]},
+        }
+    }
+)
 
 
 class MetaFetcher:
@@ -40,6 +54,14 @@ class MetaFetcher:
     def metadata_types(self) -> list[str]:
         return list(METAMAP.keys())
 
+    def metadata_subtypes(self, metadata_type: str) -> list[str]:
+        response = []
+        for key, value in METAMAP_DETAILS.items():
+            if value["metadata_type"] == metadata_type:
+                response.append(key)
+
+        return response
+
     def fetch(self, metadata_type: str, region_name: str) -> Iterator[dict[str, Any]]:
         return resource_listing(
             session=self.session,
@@ -50,3 +72,25 @@ class MetaFetcher:
             call_kwargs=thaw(METAMAP[metadata_type].get("kwargs", {})),
             region_name=region_name,
         )
+
+    def fetch_resources(self, metadata_subtype: str, region_name: str, resources: dict) -> list[dict[str, Any]]:
+        fetch_method: str = METAMAP_DETAILS[metadata_subtype]["fetch_method"]  # type: ignore
+        parameter_name = METAMAP_DETAILS[metadata_subtype]["parameter_name"]
+        response_key = METAMAP_DETAILS[metadata_subtype]["response_key"]
+        call_kwargs = thaw(METAMAP_DETAILS[metadata_subtype].get("kwargs", {}))
+        listing_key = METAMAP_DETAILS[metadata_subtype]["listing_key"]
+
+        service = metadata_subtype.split("_")[0]
+        client_kwargs = {}
+        if region_name:
+            client_kwargs["region_name"] = region_name
+
+        client = self.session.client(service, **client_kwargs)
+
+        if listing_key:
+            resource_kwargs = {parameter_name: resources.get(listing_key)}
+        else:
+            resource_kwargs = {parameter_name: resources}
+
+        response = getattr(client, fetch_method)(**call_kwargs, **resource_kwargs)[response_key]
+        return response
