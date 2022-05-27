@@ -1,5 +1,6 @@
 from typing import Any
 from typing import Iterator
+from typing import Optional
 from pyrsistent import thaw
 
 import boto3
@@ -36,17 +37,24 @@ class MetaFetcher:
         schema = serializer.schema(metadata_type)
         return schema
 
+    def metadata_config(self, metadata_type: str) -> dict[str, Any]:
+        return METAMAP[metadata_type]
+
     @property
     def metadata_types(self) -> list[str]:
         return list(METAMAP.keys())
 
-    def fetch(self, metadata_type: str, region_name: str) -> Iterator[dict[str, Any]]:
+    def fetch(self, metadata_type: str, region_name: str, extra_kwargs: Optional[dict] = None) -> Iterator[dict[str, Any]]:
+        metadata_config = self.metadata_config(metadata_type)
+        call_kwargs = thaw(metadata_config.get("kwargs", {}))
+        if isinstance(extra_kwargs, dict):
+            call_kwargs.update(extra_kwargs)
         return resource_listing(
             session=self.session,
             metaname=metadata_type,
-            fetch_method=METAMAP[metadata_type]["fetch_method"],
-            response_key=METAMAP[metadata_type]["response_key"],
-            page_key=METAMAP[metadata_type].get("page_key", ""),
-            call_kwargs=thaw(METAMAP[metadata_type].get("kwargs", {})),
+            fetch_method=metadata_config["fetch_method"],
+            response_key=metadata_config["response_key"],
+            page_key=metadata_config.get("page_key", ""),
+            call_kwargs=call_kwargs,
             region_name=region_name,
         )
