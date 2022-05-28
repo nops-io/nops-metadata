@@ -7,14 +7,14 @@ This module also provides Spark schemas for boto3 responses.
 
 **Installation**
 
-    pip install git+https://github.com/nops-io/metadata_producer.git@master
+    pip install nops-metadata
 
 **Usage**:
 
 Pulling data:
 
     import boto3
-    from metadata_producer import MetaFetcher
+    from nops_metadata import MetaFetcher
     
     fetcher = MetaFetcher(session=boto3.Session())
     for metadata_type in fetcher.metadata_types:
