@@ -1,17 +1,8 @@
-from nops_metadata import MetaFetcher
-from nops_metadata import METAMAP
-import pytest
 import boto3
+import pytest
 
-
-@pytest.fixture
-def aws_session() -> boto3.Session:
-    return boto3.Session()
-
-
-@pytest.fixture()
-def metafetcher(aws_session) -> MetaFetcher:
-    return MetaFetcher(session=aws_session)
+from nops_metadata import METAMAP
+from nops_metadata import MetaFetcher
 
 
 def test_meta_fetcher_init(metafetcher: MetaFetcher):
