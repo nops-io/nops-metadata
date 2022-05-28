@@ -1,7 +1,7 @@
 
-# metadata_producer
-Package allows to easily pull metadata for various AWS entities.
-This module also provides Spark schemas for boto3 responses.
+# nops-metadata
+Package allows to pull metadata for AWS entities. List of entities can be found here: [constants](nops_metadata/constants.py)  
+Library also provides Spark schemas for all supported metadata producers.
   
 
 
