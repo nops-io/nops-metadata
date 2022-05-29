@@ -1,3 +1,4 @@
+import json
 from string import capwords
 from typing import Any
 from typing import Iterator
@@ -39,6 +40,12 @@ def _handle_page(page: dict, page_key: str, response_key: str) -> Iterator[dict[
             yield page_iter
 
 
+def process_element(element):
+    if "AssumeRolePolicyDocument" in element:
+        element["AssumeRolePolicyDocument"] = json.dumps(element["AssumeRolePolicyDocument"])
+    return element
+
+
 def resource_listing(
     session: boto3.Session,
     metaname: str,
@@ -60,7 +67,7 @@ def resource_listing(
 
         for page in paginator.paginate(**thaw(call_kwargs)):
             for element in _handle_page(page=page, page_key=page_key, response_key=response_key):
-                yield element
+                yield process_element(element)
     else:
         response: list[dict] = getattr(client, fetch_method)(**call_kwargs)[response_key]
         if isinstance(response, list):

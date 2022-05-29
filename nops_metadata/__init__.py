@@ -7,7 +7,8 @@ from pyrsistent import thaw
 
 from .constants import METAMAP
 from .constants import SINLE_REGION_SERVICES
-from .schema import SparkAWSSchemaSerializer
+from .schema import PydanticSchemaGenerator
+from .spark_schema import SparkAWSSchemaSerializer
 from .utils import resource_listing
 
 METAMAP_DETAILS = freeze(
@@ -35,10 +36,11 @@ class MetaFetcher:
         else:
             return self.session.get_available_regions(service_name=service_name)
 
-    def schema(self, metadata_type: str) -> dict[str, Any]:
-        serializer = SparkAWSSchemaSerializer()
-        schema = serializer.schema(metadata_type)
-        return schema
+    def schema(self, metadata_type: str, schema_type: str = "spark") -> Any:
+        if schema_type == "spark":
+            return SparkAWSSchemaSerializer().schema(metadata_type=metadata_type)
+        else:
+            return PydanticSchemaGenerator().schema(metadata_type)
 
     def postgres_schema(self, metadata_type: str) -> dict[str, Any]:
         postgres_custom_types = {

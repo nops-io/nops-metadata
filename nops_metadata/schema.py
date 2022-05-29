@@ -1,31 +1,31 @@
+from datetime import datetime
 from typing import Any
 from typing import Optional
 
 from botocore import xform_name
 from botocore.loaders import Loader
 from botocore.model import ServiceModel
+from pydantic import BaseModel
+from pydantic import create_model
 
 from .constants import METAMAP
 
 loader = Loader()
 
 
-spark_type_map = {"structure": "struct", "list": "array"}
-
-
-class SparkAWSSchemaSerializer:
+class PydanticSchemaGenerator:
     def __init__(
         self,
         custom_types: Optional[dict] = None,
     ):
         self.custom_types = custom_types or {}
+        self.type_store = {}
 
     def schema(self, metadata_type: str = "ec2_instances"):
-
+        self.type_store = {}  # Reset type store to avoid conflicts with other schemas.
         service = metadata_type.split("_")[0]
         operation_name: Any = METAMAP[metadata_type]["fetch_method"]
 
-        # TODO avoid hardcoding service-2
         json_service_model = loader.load_service_model(service_name=service, type_name="service-2")
         sm = ServiceModel(json_service_model, service_name=service)
 
@@ -56,7 +56,7 @@ class SparkAWSSchemaSerializer:
             else:
                 raise ValueError(shape)
 
-            return self.parse(shape=response_shape)
+            return self.parse(shape=response_shape, name=page_key)
 
         else:
             inner_response = shape.members[response_key]
@@ -66,139 +66,70 @@ class SparkAWSSchemaSerializer:
             else:
                 response_shape = inner_response
 
-            if response_shape.type_name in ["string", "map"]:
-                fields = [self.parse(inner_response, name=response_key)]
-                return {
-                    "type": "struct",
-                    "fields": fields,
-                }
+            if response_shape.type_name in ["string"]:
+                field = self.parse(inner_response, name=response_key)
+                return create_model(inner_response.name, **{inner_response.name: field})
 
-            return self.parse(response_shape)
+            response = self.parse(response_shape, name=response_key)
+            if isinstance(response, tuple):
+                return create_model(response_key, **{response_key: response})
 
-    def _parse_shape_blob(self, shape, name):
-        return {
-            "name": name,
-            "type": "binary",
-            "nullable": True,
-            "metadata": {},
-        }
+            return response
 
-    def _parse_shape_long(self, shape, name):
-        return {
-            "name": name,
-            "type": self.custom_types.get("long", "long"),
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_blob(self, shape, name, *args):
+        return (bytes, None)
 
-    def _parse_shape_double(self, shape, name):
-        return {
-            "name": name,
-            "type": self.custom_types.get("double", "double"),
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_long(self, shape, name, *args):
+        return (int, None)
 
-    def _parse_shape_float(self, shape, name):
-        return {
-            "name": name,
-            "type": "float",
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_double(self, shape, name, *args):
+        return (float, None)
 
-    def _parse_shape_map(self, shape, name):
-        return {
-            "name": name,
-            "type": {
-                "type": "map",
-                "keyType": shape.key.type_name,
-                "valueType": shape.value.type_name,
-                "valueContainsNull": True,
-            },
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_float(self, shape, name, *args):
+        return (float, None)
 
-    def _parse_shape_integer(self, shape, name):
-        return {
-            "name": name,
-            "type": "integer",
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_map(self, shape, name, *args):
+        return (dict, None)
 
-    def _parse_shape_boolean(self, shape, name):
-        return {
-            "name": name,
-            "type": "boolean",
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_integer(self, shape, name, *args):
+        return (int, None)
 
-    def _parse_shape_string(self, shape, name):
-        output = {
-            "name": name,
-            "type": self.custom_types.get("string", "string"),
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_boolean(self, shape, name, *args):
+        return (bool, None)
 
-        return output
+    def _parse_shape_string(self, shape, name, *args):
+        return (str, None)
 
-    def _parse_shape_timestamp(self, shape, name):
-        return {
-            "name": name,
-            "type": "timestamp",
-            "nullable": True,
-            "metadata": {},
-        }
+    def _parse_shape_timestamp(self, shape, name, *args):
+        return (datetime, None)
 
-    def _parse_shape_list(self, shape, name):
-        if shape.member.type_name not in ["structure", "list"]:
-            element_type = shape.member.type_name
-        else:
-            element_type = self.parse(shape.member)
+    def _parse_shape_list(self, shape, name, previous_shape_name):
+        array_type = self.parse(shape=shape.member, name=name, previous_shape_name=previous_shape_name)
+        response = (list[array_type], None)
+        return response
+        # if shape.member.type_name not in ["structure", "list"]:
+        #     class_attrs = {shape.member.name: list}
+        # else:
+        #     class_attrs = {shape.member.name: }
 
-        output = {
-            "type": {
-                "type": "array",
-                "elementType": element_type,
-                "containsNull": True,
-            },
-            "nullable": True,
-            "metadata": {},
-            "name": name,
-        }
+        # return create_model(name, **class_attrs)
 
-        return output
-
-    def _parse_shape_structure(self, shape, name):
-        response = {"type": "struct"}
-
-        if name:
-            response["name"] = name
-
-        fields = []
-
+    def _parse_shape_structure(self, shape, name, previous_shape_name=""):
+        class_attrs = {}
         for key, internal_shape in shape.members.items():
-            if internal_shape.type_name not in ["structure", "list"]:
-                item = self.parse(internal_shape, name=key)
+            item = self.parse(shape=internal_shape, name=key, previous_shape_name=name)
+            if not isinstance(item, tuple):
+                item = (item, None)
+            class_attrs[key] = item
 
-            elif internal_shape.type_name == "structure":
-                item = {"name": key, "type": self.parse(internal_shape), "nullable": True, "metadata": {}}
+        type_name = f"{previous_shape_name}{name}"
 
-            elif internal_shape.type_name == "list":
-                item = self.parse(shape=internal_shape, name=key)
+        if type_name not in self.type_store:
+            self.type_store[type_name] = create_model(f"{previous_shape_name}{name}", **class_attrs)
 
-            else:
-                raise ValueError(internal_shape.type_name)
-
-            fields.append(item)
-
-        response["fields"] = fields
+        response = self.type_store[type_name]
         return response
 
-    def parse(self, shape, name=None):
-        type_name = shape.type_name
-        return getattr(self, f"_parse_shape_{type_name}")(shape, name)
+    def parse(self, shape, name="", previous_shape_name=""):
+        return getattr(self, f"_parse_shape_{shape.type_name}")(shape, name, previous_shape_name)
+        # return output

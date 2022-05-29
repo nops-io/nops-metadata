@@ -1,7 +1,7 @@
 test:
 	pytest -n auto nops_metadata/
 
-publish: build
+publish: test build
 	poetry publish
 
 build:
