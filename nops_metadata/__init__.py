@@ -39,8 +39,10 @@ class MetaFetcher:
     def schema(self, metadata_type: str, schema_type: str = "spark") -> Any:
         if schema_type == "spark":
             return SparkAWSSchemaSerializer().schema(metadata_type=metadata_type)
-        else:
+        elif schema_type == "pydantic":
             return PydanticSchemaGenerator().schema(metadata_type)
+        else:
+            raise ValueError(f"{schema_type} is not supported.")
 
     def postgres_schema(self, metadata_type: str) -> dict[str, Any]:
         postgres_custom_types = {

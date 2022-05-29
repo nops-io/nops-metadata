@@ -1,7 +1,7 @@
 
 # nops-metadata
 Package allows to pull metadata for AWS entities. List of entities can be found here: [constants](nops_metadata/constants.py)  
-Library also provides Spark schemas for all supported metadata producers.
+Library also provides schemas for all supported metadata producers.
   
 
 
@@ -28,4 +28,5 @@ Getting schemas:
     
     fetcher = MetaFetcher(session=boto3.Session())
     for metadata_type in fetcher.metadata_types:
-        schema = fetcher.schema(metadata_type=metadata_type)
+        spark_schema = fetcher.schema(metadata_type=metadata_type)
+        pydantic_model = fetcher.schema(metadata_type=metadata_type, schema_type="pydantic")
