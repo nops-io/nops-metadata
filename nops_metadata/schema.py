@@ -107,12 +107,6 @@ class PydanticSchemaGenerator:
         array_type = self.parse(shape=shape.member, name=name, previous_shape_name=previous_shape_name)
         response = (list[array_type], None)
         return response
-        # if shape.member.type_name not in ["structure", "list"]:
-        #     class_attrs = {shape.member.name: list}
-        # else:
-        #     class_attrs = {shape.member.name: }
-
-        # return create_model(name, **class_attrs)
 
     def _parse_shape_structure(self, shape, name, previous_shape_name=""):
         class_attrs = {}
@@ -132,4 +126,3 @@ class PydanticSchemaGenerator:
 
     def parse(self, shape, name="", previous_shape_name=""):
         return getattr(self, f"_parse_shape_{shape.type_name}")(shape, name, previous_shape_name)
-        # return output
