@@ -6,6 +6,3 @@ publish: test build
 
 build:
 	poetry build
-
-setup:
-	python3 setup.py sdist bdist_wheel
