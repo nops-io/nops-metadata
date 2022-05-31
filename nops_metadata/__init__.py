@@ -75,4 +75,4 @@ class MetaFetcher:
                 call_kwargs=kwargs,
                 region_name=region_name,
             )
-            yield from [dict(resource, **kwargs) for resource in fetched_resources]
+            yield from (dict(resource, **kwargs) for resource in fetched_resources)
