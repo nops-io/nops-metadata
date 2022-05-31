@@ -35,6 +35,12 @@ def ecs_clusters(metafetcher: MetaFetcher):
     return [r for r in resources]
 
 
+@pytest.fixture
+def elbv2_target_groups(metafetcher: MetaFetcher):
+    resources = metafetcher.fetch(metadata_type="elbv2_target_groups", region_name="us-west-2")
+    return [r for r in resources]
+
+
 def test_meta_fetcher_pulling_listing(ecs_clusters):
     assert ecs_clusters
     assert isinstance(ecs_clusters, list)
@@ -59,23 +65,23 @@ def test_meta_fetcher_schema_export(metafetcher: MetaFetcher):
         assert postgres_schema
 
 
-def test_meta_fetcher_pulling_resource_details_payload(metafetcher: MetaFetcher, ecs_clusters: list[dict]):
-    for resource_details_type in metafetcher.metadata_subtypes(metadata_type="ecs_clusters"):
-        for resources in ecs_clusters[:1]:
-            resource_details = metafetcher.fetch_resources(
-                metadata_subtype=resource_details_type,
-                region_name="us-west-2",
-                resources=resources,
-            )
-            assert resource_details
-            assert isinstance(resource_details, list)
+def test_meta_fetcher_pulling_resource_details_payload(metafetcher: MetaFetcher, elbv2_target_groups: list[dict]):
+    for resource_details_type in metafetcher.subresources_metadata_types:
+        if resource_details_type != "elbv2_target_health":
+            continue
 
-            for detail in resource_details:
-                assert detail
-                assert isinstance(detail, dict)
+        parent_filters = []
+        metadata_config = metafetcher.metadata_config(metadata_type="elbv2_target_health")
+        assert metadata_config
+        filter_key = metadata_config["parent_required_filters"]["filter_key"]
+        parent_field_name = metadata_config["parent_required_filters"]["parent_filter_field"]
 
+        for resource in elbv2_target_groups[:2]:
+            parent_filters.append({filter_key: resource[parent_field_name]})
 
-# def test_meta_fetcher_pulling_resource_details_schema(metafetcher: MetaFetcher, ecs_clusters: list[dict]):
-#     for metadata_subtype in metafetcher.metadata_subtypes(metadata_type="ecs_clusters"):
-#         schema = metafetcher.schema(metadata_subtype=metadata_subtype)
-#         assert schema
+        assert len(parent_filters) == 2
+
+        resources = metafetcher.fetch(metadata_type="ecs_clusters", region_name="us-west-2", required_filters=parent_filters)
+        for detail in resources:
+            assert detail
+            assert isinstance(detail, dict)

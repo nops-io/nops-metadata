@@ -37,15 +37,6 @@ METAMAP = freeze(
         "elasticache_cache_subnet_groups": {"fetch_method": "describe_cache_subnet_groups", "response_key": "CacheSubnetGroups"},
         "elbv2_load_balancers": {"fetch_method": "describe_load_balancers", "response_key": "LoadBalancers"},
         "elbv2_target_groups": {"fetch_method": "describe_target_groups", "response_key": "TargetGroups"},
-        "elbv2_target_health": {
-            "fetch_method": "describe_target_health",
-            "response_key": "TargetHealthDescriptions",
-            "parent_required_filters": {
-                "filter_key": "TargetGroupArn",
-                "parent_filter_field": "TargetGroupArn",
-                "parent_metadata_type": "elbv2_target_groups",
-            }
-        },
         "iam_account_aliases": {"fetch_method": "list_account_aliases", "response_key": "AccountAliases"},
         "iam_account_summary": {"fetch_method": "get_account_summary", "response_key": "SummaryMap"},
         "iam_account_password_policy": {"fetch_method": "get_account_password_policy", "response_key": "PasswordPolicy"},
@@ -65,6 +56,20 @@ METAMAP = freeze(
         "ssm_compliance_summaries": {"fetch_method": "list_compliance_summaries", "response_key": "ComplianceSummaryItems"},
         "workspaces_workspace_directories": {"fetch_method": "describe_workspace_directories", "response_key": "Directories"},
         "workspaces_workspaces": {"fetch_method": "describe_workspaces", "response_key": "Workspaces"},
+    })
+)
+
+SUBRESOURCES_METAMAP = freeze(
+    OrderedDict({
+        "elbv2_target_health": {
+            "fetch_method": "describe_target_health",
+            "response_key": "TargetHealthDescriptions",
+            "parent_required_filters": {
+                "filter_key": "TargetGroupArn",
+                "parent_filter_field": "TargetGroupArn",
+                "parent_metadata_type": "elbv2_target_groups",
+            }
+        },
     })
 )
 
