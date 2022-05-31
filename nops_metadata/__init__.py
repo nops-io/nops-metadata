@@ -66,7 +66,7 @@ class MetaFetcher:
             kwargs_list.append(call_kwargs)
 
         for kwargs in kwargs_list:
-            yield from resource_listing(
+            fetched_resources = resource_listing(
                 session=self.session,
                 metaname=metadata_type,
                 fetch_method=metadata_config["fetch_method"],
@@ -75,3 +75,4 @@ class MetaFetcher:
                 call_kwargs=kwargs,
                 region_name=region_name,
             )
+            yield from [dict(resource, **kwargs) for resource in fetched_resources]
