@@ -1,5 +1,6 @@
 from typing import Any
 from typing import Iterator
+from typing import Optional
 
 import boto3
 from pyrsistent import freeze
@@ -54,6 +55,9 @@ class MetaFetcher:
         schema = serializer.schema(metadata_type)
         return schema
 
+    def metadata_config(self, metadata_type: str) -> dict[str, Any]:
+        return METAMAP[metadata_type]
+
     @property
     def metadata_types(self) -> list[str]:
         return list(METAMAP.keys())
@@ -66,16 +70,27 @@ class MetaFetcher:
 
         return response
 
-    def fetch(self, metadata_type: str, region_name: str) -> Iterator[dict[str, Any]]:
-        return resource_listing(
-            session=self.session,
-            metaname=metadata_type,
-            fetch_method=METAMAP[metadata_type]["fetch_method"],
-            response_key=METAMAP[metadata_type]["response_key"],
-            page_key=METAMAP[metadata_type].get("page_key", ""),
-            call_kwargs=thaw(METAMAP[metadata_type].get("kwargs", {})),
-            region_name=region_name,
-        )
+    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None) -> Iterator[dict[str, Any]]:
+        metadata_config = self.metadata_config(metadata_type)
+        call_kwargs = thaw(metadata_config.get("kwargs", {}))
+        kwargs_list = []
+
+        if "parent_required_filters" in metadata_config:
+            for filter_kwargs in (required_filters or []):
+                kwargs_list.append(dict(call_kwargs, **filter_kwargs))
+        else:
+            kwargs_list.append(call_kwargs)
+
+        for kwargs in kwargs_list:
+            yield from resource_listing(
+                session=self.session,
+                metaname=metadata_type,
+                fetch_method=metadata_config["fetch_method"],
+                response_key=metadata_config["response_key"],
+                page_key=metadata_config.get("page_key", ""),
+                call_kwargs=kwargs,
+                region_name=region_name,
+            )
 
     def fetch_resources(self, metadata_subtype: str, region_name: str, resources: dict) -> list[dict[str, Any]]:
         fetch_method: str = METAMAP_DETAILS[metadata_subtype]["fetch_method"]  # type: ignore
