@@ -6,6 +6,7 @@ from botocore.loaders import Loader
 from botocore.model import ServiceModel
 
 from .constants import METAMAP
+from .constants import SUBRESOURCES_METAMAP
 
 spark_type_map = {"structure": "struct", "list": "array"}
 
@@ -18,11 +19,12 @@ class SparkAWSSchemaSerializer:
         custom_types: Optional[dict] = None,
     ):
         self.custom_types = custom_types or {}
+        self.meta_map = (METAMAP | SUBRESOURCES_METAMAP)
 
     def schema(self, metadata_type: str = "ec2_instances"):
 
         service = metadata_type.split("_")[0]
-        operation_name: Any = METAMAP[metadata_type]["fetch_method"]
+        operation_name: Any = self.meta_map[metadata_type]["fetch_method"]
 
         # TODO avoid hardcoding service-2
         json_service_model = loader.load_service_model(service_name=service, type_name="service-2")
@@ -42,8 +44,8 @@ class SparkAWSSchemaSerializer:
         shape,
         metadata_type,
     ):
-        page_key = METAMAP[metadata_type].get("page_key")
-        response_key: Any = METAMAP[metadata_type]["response_key"]
+        page_key = self.meta_map[metadata_type].get("page_key")
+        response_key: Any = self.meta_map[metadata_type]["response_key"]
 
         if page_key:
             inner_response = shape.members[page_key]
