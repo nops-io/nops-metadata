@@ -40,6 +40,7 @@ METAMAP = freeze(
         "iam_account_aliases": {"fetch_method": "list_account_aliases", "response_key": "AccountAliases"},
         "iam_account_summary": {"fetch_method": "get_account_summary", "response_key": "SummaryMap"},
         "iam_account_password_policy": {"fetch_method": "get_account_password_policy", "response_key": "PasswordPolicy"},
+        "iam_instance_profiles": {"fetch_method": "list_instance_profiles", "response_key": "InstanceProfiles"},
         "iam_roles": {"fetch_method": "list_roles", "response_key": "Roles"},
         "iam_users": {"fetch_method": "list_users", "response_key": "Users"},
         "inspector_assessment_runs": {"fetch_method": "list_assessment_runs", "response_key": "assessmentRunArns"},
