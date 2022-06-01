@@ -74,6 +74,13 @@ SUBRESOURCES_METAMAP = freeze(
     })
 )
 
+# This dict stores the "metadata_type -> fields to process" mapping
+# We need it because sweet boto3 lib marks AssumeRolePolicyDocument as str in schemas, but in fact it returns dict obj.
+# SEE: nops_metadata.utils.process_element
+APPLY_NESTED_ELEMENT_PROCESSING = {
+    "iam_instance_profiles": ["Roles"]
+}
+
 RELATIONSHIPS_MAPPING = freeze(
     {
         "ec2_instances": {
