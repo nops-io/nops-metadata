@@ -54,7 +54,7 @@ class MetaFetcher:
     def subresources_metadata_types(self) -> list[str]:
         return list(SUBRESOURCES_METAMAP.keys())
 
-    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None) -> Iterator[dict[str, Any]]:
+    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None) -> Iterator[dict[str, Any]]:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
         kwargs_list = []
@@ -62,6 +62,8 @@ class MetaFetcher:
         if "parent_required_filters" in metadata_config:
             for filter_kwargs in (required_filters or []):
                 kwargs_list.append(dict(call_kwargs, **filter_kwargs))
+        elif custom_kwargs:
+            kwargs_list.append(custom_kwargs)
         else:
             kwargs_list.append(call_kwargs)
 
