@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nops-metadata"
-version = "0.3.1"
+version = "0.3.3"
 description = "Metadata producer tooling used in nOps.io"
 authors = ["nOps Engineers <eng@nops.io>"]
 
