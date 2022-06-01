@@ -36,6 +36,12 @@ def ecs_clusters(metafetcher: MetaFetcher):
 
 
 @pytest.fixture
+def ec2_instances(metafetcher: MetaFetcher):
+    resources = metafetcher.fetch(metadata_type="ec2_instances", region_name="us-west-2")
+    return [r for r in resources]
+
+
+@pytest.fixture
 def elbv2_target_groups(metafetcher: MetaFetcher):
     resources = metafetcher.fetch(metadata_type="elbv2_target_groups", region_name="us-west-2")
     return [r for r in resources]
@@ -85,3 +91,27 @@ def test_meta_fetcher_pulling_resource_details_payload(metafetcher: MetaFetcher,
         for detail in resources:
             assert detail
             assert isinstance(detail, dict)
+
+
+def test_meta_fetcher_custom_kwargs(metafetcher: MetaFetcher, ec2_instances):
+
+    assert ec2_instances
+    assert isinstance(ec2_instances, list)
+
+    resources_list = []
+
+    ec2_instances = ec2_instances[:2]
+
+    for instance in ec2_instances:
+        assert isinstance(instance, dict)
+        instance_id = instance["InstanceId"]
+        custom_kwargs = {"InstanceIds": [instance_id]}
+        resources = metafetcher.fetch(metadata_type="ec2_instances", region_name="us-west-2", custom_kwargs=custom_kwargs)
+        assert resources
+
+        for r in resources:
+            assert isinstance(r, dict)
+            resources_list.append(r["InstanceId"])
+            assert r["InstanceId"] == instance_id
+
+    assert len(resources_list) == len(ec2_instances)
