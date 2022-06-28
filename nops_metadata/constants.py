@@ -71,6 +71,14 @@ SUBRESOURCES_METAMAP = freeze(
                 "parent_metadata_type": "elbv2_target_groups",
             }
         },
+        "s3_bucket_versioning": {
+            "fetch_method": "get_bucket_versioning",
+            "parent_required_filters": {
+                "filter_key": "Bucket",
+                "parent_filter_field": "Name",
+                "parent_metadata_type": "s3_buckets",
+            }
+        },
     })
 )
 

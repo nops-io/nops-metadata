@@ -83,7 +83,11 @@ def resource_listing(
             for element in _handle_page(page=page, page_key=page_key, response_key=response_key):
                 yield process_element(element, metadata_type=metaname)
     else:
-        response: list[dict] = getattr(client, fetch_method)(**call_kwargs)[response_key]
+        response: list[dict] = getattr(client, fetch_method)(**call_kwargs)
+
+        if response_key:
+            response = response[response_key]
+
         if isinstance(response, list):
             for el in response:
                 yield el

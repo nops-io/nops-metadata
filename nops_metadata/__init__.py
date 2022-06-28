@@ -72,7 +72,7 @@ class MetaFetcher:
                 session=self.session,
                 metaname=metadata_type,
                 fetch_method=metadata_config["fetch_method"],
-                response_key=metadata_config["response_key"],
+                response_key=metadata_config.get("response_key"),
                 page_key=metadata_config.get("page_key", ""),
                 call_kwargs=kwargs,
                 region_name=region_name,
