@@ -64,6 +64,7 @@ class MetaFetcher:
         call_kwargs: dict,
         metadata_type: str,
         region_name: str,
+        num_threads: int,
         required_filters: Optional[list[dict[str, Any]]] = None,
     ):
         kwargs_list = []
@@ -98,14 +99,14 @@ class MetaFetcher:
         for kwarg in kwargs_list:
             task_queue.put(kwarg)
 
-        threads: List[Thread] = [Thread(target=_worker) for _ in range(5)]
+        threads: List[Thread] = [Thread(target=_worker) for _ in range(num_threads)]
 
         for thread in threads:
             thread.start()
 
         while True:
             try:
-                yield from queue.get(block=True, timeout=0.1)
+                yield from queue.get(block=True, timeout=5)
 
             except Empty:
                 any_alive = any([thread.is_alive() for thread in threads])
@@ -113,7 +114,11 @@ class MetaFetcher:
                     break
 
     def fetch(
-        self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None
+        self,
+        metadata_type: str,
+        region_name: str,
+        required_filters: Optional[list[dict[str, Any]]] = None,
+        num_threads: int = 5,
     ) -> Iterator[dict[str, Any]]:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
@@ -125,6 +130,7 @@ class MetaFetcher:
                 metadata_type=metadata_type,
                 region_name=region_name,
                 required_filters=required_filters,
+                num_threads=num_threads,
             )
         else:
             yield from resource_listing(
