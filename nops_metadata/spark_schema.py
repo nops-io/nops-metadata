@@ -45,7 +45,7 @@ class SparkAWSSchemaSerializer:
         metadata_type,
     ):
         page_key = self.meta_map[metadata_type].get("page_key")
-        response_key: Any = self.meta_map[metadata_type]["response_key"]
+        response_key: Any = self.meta_map[metadata_type].get("response_key")
 
         if page_key:
             inner_response = shape.members[page_key]
@@ -60,7 +60,10 @@ class SparkAWSSchemaSerializer:
             return self.parse(shape=response_shape)
 
         else:
-            inner_response = shape.members[response_key]
+            inner_response = shape
+
+            if response_key:
+                inner_response = inner_response.members[response_key]
 
             if inner_response.type_name == "list":
                 response_shape = inner_response.member
