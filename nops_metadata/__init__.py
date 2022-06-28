@@ -1,9 +1,10 @@
+from multiprocessing import Lock
+from threading import Thread
 from typing import Any
 from typing import Iterator
 from typing import Optional
 
 import boto3
-from pyrsistent import freeze
 from pyrsistent import thaw
 
 from .constants import METAMAP
@@ -12,6 +13,9 @@ from .constants import SINLE_REGION_SERVICES
 from .schema import PydanticSchemaGenerator
 from .spark_schema import SparkAWSSchemaSerializer
 from .utils import resource_listing
+from queue import Empty
+from typing import List
+from queue import Queue
 
 
 class MetaFetcher:
@@ -54,27 +58,81 @@ class MetaFetcher:
     def subresources_metadata_types(self) -> list[str]:
         return list(SUBRESOURCES_METAMAP.keys())
 
-    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None) -> Iterator[dict[str, Any]]:
+    def fetch_in_threads(
+        self,
+        metadata_config: dict,
+        call_kwargs: dict,
+        metadata_type: str,
+        region_name: str,
+        required_filters: Optional[list[dict[str, Any]]] = None,
+    ):
+        kwargs_list = []
+        for filter_kwargs in required_filters or []:
+            kwargs_list.append(dict(call_kwargs, **filter_kwargs))
+
+        def _worker():
+            while True:
+                try:
+                    task_kwargs = task_queue.get(block=False)
+                    resources = resource_listing(
+                        session=self.session,
+                        metaname=metadata_type,
+                        fetch_method=metadata_config["fetch_method"],
+                        response_key=metadata_config.get("response_key"),
+                        page_key=metadata_config.get("page_key", ""),
+                        call_kwargs=task_kwargs,
+                        region_name=region_name,
+                    )
+                    queue.put(list(resources), timeout=60 * 3)
+
+                # Ends worker life.
+                except Empty:
+                    break
+
+                except Exception as e:
+                    pass
+
+        task_queue: Queue = Queue(maxsize=len(kwargs_list))
+        queue: Queue = Queue(maxsize=len(kwargs_list))
+
+        for kwarg in kwargs_list:
+            task_queue.put(kwarg)
+
+        threads: List[Thread] = [Thread(target=_worker) for _ in range(5)]
+
+        for thread in threads:
+            thread.start()
+
+        while True:
+            try:
+                yield from queue.get(block=True, timeout=0.1)
+
+            except Empty:
+                any_alive = any([thread.is_alive() for thread in threads])
+                if not any_alive:
+                    break
+
+    def fetch(
+        self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None
+    ) -> Iterator[dict[str, Any]]:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
-        kwargs_list = []
 
         if "parent_required_filters" in metadata_config:
-            for filter_kwargs in (required_filters or []):
-                kwargs_list.append(dict(call_kwargs, **filter_kwargs))
-        elif custom_kwargs:
-            kwargs_list.append(custom_kwargs)
+            yield from self.fetch_in_threads(
+                metadata_config=metadata_config,
+                call_kwargs=call_kwargs,
+                metadata_type=metadata_type,
+                region_name=region_name,
+                required_filters=required_filters,
+            )
         else:
-            kwargs_list.append(call_kwargs)
-
-        for kwargs in kwargs_list:
-            fetched_resources = resource_listing(
+            yield from resource_listing(
                 session=self.session,
                 metaname=metadata_type,
                 fetch_method=metadata_config["fetch_method"],
                 response_key=metadata_config.get("response_key"),
                 page_key=metadata_config.get("page_key", ""),
-                call_kwargs=kwargs,
+                call_kwargs=call_kwargs,
                 region_name=region_name,
             )
-            yield from (dict(resource, **kwargs) for resource in fetched_resources)
