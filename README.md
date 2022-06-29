@@ -3,9 +3,9 @@
 Package allows to pull metadata for AWS entities. List of entities can be found here: [constants](nops_metadata/constants.py)  
 For advanced usage see:
 - [Sub-resources ingestion](wiki/subresources.md)
+
 Library also provides schemas for all supported metadata producers.
   
-
 
 **Installation**
 

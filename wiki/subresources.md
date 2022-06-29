@@ -15,7 +15,7 @@ To apply sub-resources ingestion you'll need to add your entry to `SUBRESOURCES_
 Entry example and description:
 
 ```python
- "NEW_TABLE_NAME": {
+"NEW_TABLE_NAME": {
     "fetch_method": "get_bucket_versioning",
     "response_key": "LIKE_IN_OTHER_RESOURCE_ENTRIES(OPTIONAL)",
     "parent_required_filters": {
