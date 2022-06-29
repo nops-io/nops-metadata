@@ -1,9 +1,12 @@
 
 # Sub-resources fetching
+- [Brief overview](#brief-overview)
+- [Constants file mapping](#constants-file-mapping)
+- [Usage](#usage)
 
 ### Brief overview
 Some boto3 calls have required keyword arguments. 
-<br>For example to S3 bucket versioning info you need to execute `s3_bucket_versioning` and pass kwargs `(Bucket="S Bucket Name)`.
+<br>For example to ingest S3 bucket versioning info you need to execute `s3_bucket_versioning` and pass kwargs `(Bucket="S3 Bucket Name)`.
 
 
 ### Constants file mapping
