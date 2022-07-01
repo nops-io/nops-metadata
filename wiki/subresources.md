@@ -55,4 +55,4 @@ def fetch_s3_versioning(s3_bucket_names: list = []) -> Iterator[dict[str, Any]]
 Under the hood it will execute `fetch_method` specified in [constants](nops_metadata/constants.py) file for every item in `required_filters` list.
 <br>By default it will do that in 5 threads queue, but it can be tuned using `num_threads` keyword argument in `MetaFetcher.fetch()` method.
 
-I won't recommend to use `num_threads` parameter larger than 5 because the limits are not tested on prod yet, `5 threads * 4 region processes * 30 keda workers` may lead to aws throttles our requests ot other bad things. 
+I won't recommend to use `num_threads` parameter larger than 5, `5 threads * 4 region processes * 30 keda workers` may lead to aws throttles our requests or other bad things. 

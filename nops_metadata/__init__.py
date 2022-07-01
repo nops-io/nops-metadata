@@ -1,4 +1,4 @@
-from multiprocessing import Lock
+import logging
 from threading import Thread
 from typing import Any
 from typing import Iterator
@@ -117,22 +117,26 @@ class MetaFetcher:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
 
-        if "parent_required_filters" in metadata_config:
-            yield from self.fetch_in_threads(
-                metadata_config=metadata_config,
-                call_kwargs=call_kwargs,
-                metadata_type=metadata_type,
-                region_name=region_name,
-                required_filters=required_filters,
-                num_threads=num_threads,
-            )
-        else:
-            yield from resource_listing(
-                session=self.session,
-                metaname=metadata_type,
-                fetch_method=metadata_config["fetch_method"],
-                response_key=metadata_config.get("response_key"),
-                page_key=metadata_config.get("page_key", ""),
-                call_kwargs=custom_kwargs or call_kwargs,
-                region_name=region_name,
-            )
+        try:
+            if "parent_required_filters" in metadata_config:
+                yield from self.fetch_in_threads(
+                    metadata_config=metadata_config,
+                    call_kwargs=call_kwargs,
+                    metadata_type=metadata_type,
+                    region_name=region_name,
+                    required_filters=required_filters,
+                    num_threads=num_threads,
+                )
+            else:
+                yield from resource_listing(
+                    session=self.session,
+                    metaname=metadata_type,
+                    fetch_method=metadata_config["fetch_method"],
+                    response_key=metadata_config.get("response_key"),
+                    page_key=metadata_config.get("page_key", ""),
+                    call_kwargs=custom_kwargs or call_kwargs,
+                    region_name=region_name,
+                )
+        except Exception as e:
+            logging.exception(f"metadata_producer fetch error: {e}")
+            yield from iter([])
