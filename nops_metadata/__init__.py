@@ -138,5 +138,5 @@ class MetaFetcher:
                     region_name=region_name,
                 )
         except Exception as e:
-            logging.exception(f"metadata_producer fetch error: {e}")
+            logging.exception(f"metadata_producer fetch error: {e}", exc_info=False)
             yield from iter([])
