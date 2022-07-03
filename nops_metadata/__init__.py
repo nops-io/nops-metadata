@@ -3,6 +3,7 @@ from threading import Thread
 from typing import Any
 from typing import Iterator
 from typing import Optional
+from datetime import datetime
 
 import boto3
 from pyrsistent import thaw
@@ -138,5 +139,5 @@ class MetaFetcher:
                     region_name=region_name,
                 )
         except Exception as e:
-            logging.exception(f"metadata_producer fetch error: {e}")
+            logging.exception(f"[{datetime.now()}] metadata_producer {region_name} region fetch error: {e}", exc_info=False)
             yield from iter([])
