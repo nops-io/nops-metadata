@@ -79,6 +79,15 @@ SUBRESOURCES_METAMAP = freeze(
                 "parent_metadata_type": "s3_buckets",
             }
         },
+        "s3_bucket_encryption": {
+            "fetch_method": "get_bucket_encryption",
+            "response_key": "ServerSideEncryptionConfiguration",
+            "parent_required_filters": {
+                "filter_key": "Bucket",
+                "parent_filter_field": "Name",
+                "parent_metadata_type": "s3_buckets",
+            }
+        }
     })
 )
 
