@@ -101,10 +101,12 @@ APPLY_NESTED_ELEMENT_PROCESSING = {
 RELATIONSHIPS_MAPPING = freeze(
     {
         "ec2_instances": {
-            "volume_fk": {
+            "volume": {
+                "many_to_many": True,
+                "m2m_table_name": "ec2_instance_volume",
                 "related_table": "ec2_volumes",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.block_device_mappings::jsonb) AS e  LEFT OUTER JOIN ec2_volumes ec2_volumes_tmp ON (e -> 'Ebs' ->> 'VolumeId') = ec2_volumes_tmp.volume_id""",
                 "related_column": "volume_id",
+                "custom_join_query": """, json_array_elements(block_device_mappings::json) AS e JOIN ec2_volumes ec2_volumes_tmp ON (e -> 'Ebs' ->> 'VolumeId') = ec2_volumes_tmp.volume_id """,
             },
             "image_fk": {
                 "related_table": "ec2_images",
@@ -120,10 +122,10 @@ RELATIONSHIPS_MAPPING = freeze(
             },
             "ec2_security_groups": {
                 "many_to_many": True,
-                "m2m_table_name": "ec2_security_groups_m2m",
+                "m2m_table_name": "ec2_instance_security_group",
                 "related_table": "ec2_security_groups",
                 "related_column": "group_id",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.security_groups::jsonb) AS e LEFT OUTER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'GroupId') = ec2_security_groups_tmp.group_id """,
+                "custom_join_query": """, json_array_elements(security_groups::json) AS e JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'GroupId') = ec2_security_groups_tmp.group_id """,
              },
              "iam_instance_profile_fk": {
                 "related_table": "iam_instance_profiles",
@@ -134,10 +136,10 @@ RELATIONSHIPS_MAPPING = freeze(
          "iam_instance_profiles": {
             "roles": {
                 "many_to_many": True,
-                "m2m_table_name": "iam_instance_profile_roles",
+                "m2m_table_name": "iam_instance_profile_role",
                 "related_table": "iam_roles",
                 "related_column": "arn",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.roles::jsonb) AS e LEFT OUTER JOIN iam_roles iam_roles_tmp ON (e ->> 'Arn') = iam_roles_tmp.arn """,
+                "custom_join_query": """, json_array_elements(roles::json) AS e JOIN iam_roles iam_roles_tmp ON (e ->> 'Arn') = iam_roles_tmp.arn """,
             }
         },
         "ec2_security_groups": {
@@ -149,7 +151,7 @@ RELATIONSHIPS_MAPPING = freeze(
         "elbv2_target_groups": {
             "load_balancer_arns": {
                 "many_to_many": True,
-                "m2m_table_name": "elbv2_load_balancers_m2m",
+                "m2m_table_name": "target_group_load_balancer",
                 "related_table": "elbv2_load_balancers",
                 "related_column": "load_balancer_arn",
             },
@@ -165,7 +167,7 @@ RELATIONSHIPS_MAPPING = freeze(
             },
             "security_groups": {
                 "many_to_many": True,
-                "m2m_table_name": "elb_security_groups_m2m",
+                "m2m_table_name": "load_balancer_security_group",
                 "related_table": "ec2_security_groups",
                 "related_column": "group_id",
             }
@@ -231,10 +233,10 @@ RELATIONSHIPS_MAPPING = freeze(
         "autoscaling_auto_scaling_groups": {
             "instances": {
                 "many_to_many": True,
-                "m2m_table_name": "autoscaling_enabled_ec2_instances",
+                "m2m_table_name": "autoscaling_enabled_ec2_instance",
                 "related_table": "ec2_instances",
                 "related_column": "instance_id",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.instances::jsonb) AS e LEFT OUTER JOIN ec2_instances ec2_instances_tmp ON (e ->> 'InstanceId') = ec2_instances_tmp.instance_id """,
+                "custom_join_query": """, json_array_elements(instances::json) AS e JOIN ec2_instances ec2_instances_tmp ON (e ->> 'InstanceId') = ec2_instances_tmp.instance_id """,
             }
         },
         "rds_db_instances": {
@@ -245,10 +247,10 @@ RELATIONSHIPS_MAPPING = freeze(
             },
             "vpc_security_groups": {
                 "many_to_many": True,
-                "m2m_table_name": "rds_security_groups",
+                "m2m_table_name": "rds_instance_security_group",
                 "related_table": "ec2_security_groups",
                 "related_column": "group_id",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.vpc_security_groups::jsonb) AS e LEFT OUTER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'VpcSecurityGroupId') = ec2_security_groups_tmp.group_id """,
+                "custom_join_query": """, json_array_elements(vpc_security_groups::json) AS e JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'VpcSecurityGroupId') = ec2_security_groups_tmp.group_id """,
             }
         },
         "efs_file_systems": {
@@ -261,10 +263,10 @@ RELATIONSHIPS_MAPPING = freeze(
         "elasticache_cache_clusters": {
             "security_groups": {
                 "many_to_many": True,
-                "m2m_table_name": "elasticache_security_groups",
+                "m2m_table_name": "elasticache_security_group",
                 "related_table": "ec2_security_groups",
                 "related_column": "group_id",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.security_groups::jsonb) AS e LEFT OUTER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'SecurityGroupId') = ec2_security_groups_tmp.group_id """,
+                "custom_join_query": """, json_array_elements(security_groups::json) AS e JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'SecurityGroupId') = ec2_security_groups_tmp.group_id """,
             },
             "replication_group_pk": {
                 "related_table": "elasticache_replication_groups",
@@ -289,10 +291,10 @@ RELATIONSHIPS_MAPPING = freeze(
             },
             "subnets": {
                 "many_to_many": True,
-                "m2m_table_name": "elasticache_cache_subnet_groups_m2m",
+                "m2m_table_name": "elasticache_cache_subnet_group",
                 "related_table": "ec2_subnets",
                 "related_column": "subnet_id",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.subnets::jsonb) AS e LEFT OUTER JOIN ec2_subnets ec2_subnets_tmp ON (e ->> 'SubnetIdentifier') = ec2_subnets_tmp.subnet_id """,
+                "custom_join_query": """, json_array_elements(subnets::json) AS e LEFT OUTER JOIN ec2_subnets ec2_subnets_tmp ON (e ->> 'SubnetIdentifier') = ec2_subnets_tmp.subnet_id """,
             },
         },
         "redshift_clusters": {
@@ -340,10 +342,10 @@ RELATIONSHIPS_MAPPING = freeze(
         "neptune_db_instances": {
             "vpc_security_groups": {
                 "many_to_many": True,
-                "m2m_table_name": "neptune_security_groups",
+                "m2m_table_name": "neptune_instance_security_group",
                 "related_table": "ec2_security_groups",
                 "related_column": "group_id",
-                "custom_join_query": """CROSS JOIN LATERAL JSONB_ARRAY_ELEMENTS(vals.vpc_security_groups::jsonb) AS e LEFT OUTER JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'VpcSecurityGroupId') = ec2_security_groups_tmp.group_id """,
+                "custom_join_query": """, json_array_elements(vpc_security_groups::json) AS e JOIN ec2_security_groups ec2_security_groups_tmp ON (e ->> 'VpcSecurityGroupId') = ec2_security_groups_tmp.group_id """,
             },
             "kms_key_pk": {
                 "related_table": "kms_keys",
