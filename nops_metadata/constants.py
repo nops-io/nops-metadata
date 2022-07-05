@@ -84,7 +84,7 @@ SUBRESOURCES_METAMAP = freeze(
             "response_key": "ServerSideEncryptionConfiguration",
             "parent_required_filters": {
                 "filter_key": "Bucket",
-                "parent_filter_field": "Bucket",
+                "parent_filter_field": "Name",
                 "parent_metadata_type": "s3_buckets",
             }
         }
