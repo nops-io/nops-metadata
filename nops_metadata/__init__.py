@@ -85,7 +85,7 @@ class MetaFetcher:
                         call_kwargs=task_kwargs,
                         region_name=region_name,
                     )
-                    queue.put(list(resources), timeout=60 * 3)
+                    queue.put(list([dict(resource, **task_kwargs) for resource in resources]), timeout=60 * 3)
 
                 # Ends worker life.
                 except Empty:
