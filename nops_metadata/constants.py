@@ -23,6 +23,7 @@ METAMAP = freeze(
         "ec2_nat_gateways": {"fetch_method": "describe_nat_gateways", "response_key": "NatGateways"},
         "ec2_network_interfaces": {"fetch_method": "describe_network_interfaces", "response_key": "NetworkInterfaces"},
         "ec2_reserved_instances": {"fetch_method": "describe_reserved_instances", "response_key": "ReservedInstances"},
+        "ec2_modify_reserved_instances": {"fetch_method": "describe_reserved_instances_modifications", "response_key": "ReservedInstancesModifications"},
         "ec2_route_tables": {"fetch_method": "describe_route_tables", "response_key": "RouteTables"},
         "ec2_security_groups": {"fetch_method": "describe_security_groups", "response_key": "SecurityGroups"},
         "ec2_snapshots": {"fetch_method": "describe_snapshots", "response_key": "Snapshots", "kwargs": {"OwnerIds": ["self"]}},
