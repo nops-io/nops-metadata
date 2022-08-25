@@ -114,7 +114,7 @@ class MetaFetcher:
                 if not any_alive:
                     break
 
-    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None, num_threads: int = 5) -> Iterator[dict[str, Any]]:
+    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None, num_threads: int = 5, raise_errors: bool = False) -> Iterator[dict[str, Any]]:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
 
@@ -139,5 +139,8 @@ class MetaFetcher:
                     region_name=region_name,
                 )
         except Exception as e:
-            logging.exception(f"[{datetime.now()}] metadata_producer {region_name} region fetch error: {e}", exc_info=False)
+            if raise_errors:
+                raise e
+            else:
+                logging.exception(f"Metadata_producer {region_name} region fetch error: {e}", exc_info=False)
             yield from iter([])
