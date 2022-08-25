@@ -114,7 +114,7 @@ class MetaFetcher:
                 if not any_alive:
                     break
 
-    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None, num_threads: int = 5, raise_errors: bool = False) -> Iterator[dict[str, Any]]:
+    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None, num_threads: int = 5) -> Iterator[dict[str, Any]]:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
 
