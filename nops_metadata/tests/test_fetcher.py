@@ -25,6 +25,29 @@ def test_meta_fetcher_region_list(metafetcher: MetaFetcher):
     assert metafetcher.metadata_regions(metadata_type="ec2_instances")
 
 
+def test_meta_fetcher_fetch_method(metafetcher: MetaFetcher):
+    assert metafetcher.fetch_method_name(metadata_type="ec2_instances") == "describe_instances"
+
+    for metadata_type in metafetcher.metadata_types:
+        assert all(metafetcher.fetch_method_name(metadata_type=metadata_type))
+
+    for subresource_metadata_type in metafetcher.subresources_metadata_types:
+        assert all(metafetcher.fetch_method_name(subresource_metadata_type=subresource_metadata_type))
+
+
+def test_meta_fetcher_service_name(metafetcher: MetaFetcher):
+    assert metafetcher.fetch_method_service(metadata_type="ec2_instances") == "ec2"
+
+    for metadata_type in metafetcher.metadata_types:
+        assert metafetcher.fetch_method_service(metadata_type=metadata_type) == metadata_type.split("_")[0]
+
+    for subresource_metadata_type in metafetcher.subresources_metadata_types:
+        assert (
+            metafetcher.fetch_method_service(subresource_metadata_type=subresource_metadata_type)
+            == subresource_metadata_type.split("_")[0]
+        )
+
+
 def test_meta_fetcher_region_list_wrong_name(metafetcher: MetaFetcher):
     assert not metafetcher.metadata_regions(metadata_type="unknown_servicecall")
 
@@ -87,7 +110,9 @@ def test_meta_fetcher_pulling_resource_details_payload(metafetcher: MetaFetcher,
 
         assert len(parent_filters) == 2
 
-        resources = metafetcher.fetch(metadata_type="ecs_clusters", region_name="us-west-2", required_filters=parent_filters)
+        resources = metafetcher.fetch(
+            metadata_type="ecs_clusters", region_name="us-west-2", required_filters=parent_filters
+        )
         for detail in resources:
             assert detail
             assert isinstance(detail, dict)
@@ -106,7 +131,9 @@ def test_meta_fetcher_custom_kwargs(metafetcher: MetaFetcher, ec2_instances):
         assert isinstance(instance, dict)
         instance_id = instance["InstanceId"]
         custom_kwargs = {"InstanceIds": [instance_id]}
-        resources = metafetcher.fetch(metadata_type="ec2_instances", region_name="us-west-2", custom_kwargs=custom_kwargs)
+        resources = metafetcher.fetch(
+            metadata_type="ec2_instances", region_name="us-west-2", custom_kwargs=custom_kwargs
+        )
         assert resources
 
         for r in resources:

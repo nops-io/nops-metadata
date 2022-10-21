@@ -30,6 +30,22 @@ class MetaFetcher:
         else:
             return self.session.get_available_regions(service_name=service_name)
 
+    def fetch_method_name(self, metadata_type: str = "", subresource_metadata_type: str = "") -> str:
+        if metadata_type:
+            return METAMAP[metadata_type]["fetch_method"]
+        elif subresource_metadata_type:
+            return SUBRESOURCES_METAMAP[subresource_metadata_type]["fetch_method"]
+        else:
+            raise ValueError
+
+    def fetch_method_service(self, metadata_type: str = "", subresource_metadata_type: str = "") -> str:
+        if metadata_type:
+            return metadata_type.split("_")[0]
+        elif subresource_metadata_type:
+            return subresource_metadata_type.split("_")[0]
+        else:
+            raise ValueError
+
     def schema(self, metadata_type: str, schema_type: str = "spark") -> Any:
         if schema_type == "spark":
             return SparkAWSSchemaSerializer().schema(metadata_type=metadata_type)
@@ -114,7 +130,14 @@ class MetaFetcher:
                 if not any_alive:
                     break
 
-    def fetch(self, metadata_type: str, region_name: str, required_filters: Optional[list[dict[str, Any]]] = None, custom_kwargs: Optional[dict[str, Any]] = None, num_threads: int = 5) -> Iterator[dict[str, Any]]:
+    def fetch(
+        self,
+        metadata_type: str,
+        region_name: str,
+        required_filters: Optional[list[dict[str, Any]]] = None,
+        custom_kwargs: Optional[dict[str, Any]] = None,
+        num_threads: int = 5,
+    ) -> Iterator[dict[str, Any]]:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
 
