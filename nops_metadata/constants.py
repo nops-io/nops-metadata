@@ -49,6 +49,7 @@ METAMAP = freeze(
         "lambda_functions": {"fetch_method": "list_functions", "response_key": "Functions"},
         "neptune_db_instances": {"fetch_method": "describe_db_instances", "response_key": "DBInstances"},
         "rds_db_instances": {"fetch_method": "describe_db_instances", "response_key": "DBInstances"},
+        "rds_db_clusters": {"fetch_method": "describe_db_clusters", "response_key": "DBClusters"},
         "rds_db_snapshots": {"fetch_method": "describe_db_snapshots", "response_key": "DBSnapshots"},
         "rds_pending_maintenance_actions": {"fetch_method": "describe_pending_maintenance_actions", "response_key": "PendingMaintenanceActions"},
         "redshift_clusters": {"fetch_method": "describe_clusters", "response_key": "Clusters"},

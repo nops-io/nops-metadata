@@ -1,9 +1,7 @@
-import logging
 from threading import Thread
 from typing import Any
 from typing import Iterator
 from typing import Optional
-from datetime import datetime
 
 import boto3
 from pyrsistent import thaw

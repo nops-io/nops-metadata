@@ -1,4 +1,3 @@
-import boto3
 import pytest
 
 from nops_metadata import METAMAP
