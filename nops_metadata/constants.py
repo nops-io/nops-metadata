@@ -33,6 +33,7 @@ METAMAP = freeze(
         "ecs_clusters": {"fetch_method": "list_clusters", "response_key": "clusterArns"},
         "efs_file_systems": {"fetch_method": "describe_file_systems", "response_key": "FileSystems"},
         "eks_clusters": {"fetch_method": "list_clusters", "response_key": "clusters"},
+        "eks_nodegroups_metadata": {"fetch_method": "describe_nodegroup", "response_key": "nodegroup"},
         "elasticache_cache_clusters": {"fetch_method": "describe_cache_clusters", "response_key": "CacheClusters"},
         "elasticache_replication_groups": {"fetch_method": "describe_replication_groups", "response_key": "ReplicationGroups"},
         "elasticache_cache_subnet_groups": {"fetch_method": "describe_cache_subnet_groups", "response_key": "CacheSubnetGroups"},
