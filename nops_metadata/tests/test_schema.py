@@ -1,6 +1,5 @@
 import logging
 from itertools import chain
-from pprint import pprint
 from uuid import uuid4
 
 from pyspark.sql import SparkSession

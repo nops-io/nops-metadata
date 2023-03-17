@@ -5,7 +5,6 @@ from typing import Optional
 from botocore import xform_name
 from botocore.loaders import Loader
 from botocore.model import ServiceModel
-from pydantic import BaseModel
 from pydantic import create_model
 
 from .constants import METAMAP
