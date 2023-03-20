@@ -90,6 +90,34 @@ SUBRESOURCES_METAMAP = freeze(
                 "parent_filter_field": "Name",
                 "parent_metadata_type": "s3_buckets",
             }
+        },
+        "eks_nodegroups": {
+            "fetch_method": "list_nodegroups",
+            "response_key": "nodegroups",
+            "parent_required_filters": {
+                "filter_key": "clusterName",
+                "parent_filter_field": "clusters",
+                "parent_metadata_type": "eks_clusters",
+            }
+        }
+    })
+)
+
+SUBSUBRESOURCES_METAMAP = freeze(
+    OrderedDict({
+        "eks_nodegroups_metadata": {
+            "fetch_method": "describe_nodegroup",
+            "response_key": "nodegroup",
+            "nested_parent_required_filters": {
+                "fetch_method": "list_nodegroups",
+                "filter_key": "nodegroupName",
+                "response_key": "nodegroups",
+                "parent_required_filters": {
+                    "filter_key": "clusterName",
+                    "parent_filter_field": "clusters",
+                    "parent_metadata_type": "eks_clusters",
+                },
+            }
         }
     })
 )

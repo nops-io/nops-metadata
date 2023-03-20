@@ -8,6 +8,7 @@ from pyrsistent import thaw
 
 from .constants import METAMAP
 from .constants import SUBRESOURCES_METAMAP
+from .constants import SUBSUBRESOURCES_METAMAP
 from .constants import SINLE_REGION_SERVICES
 from .schema import PydanticSchemaGenerator
 from .spark_schema import SparkAWSSchemaSerializer
@@ -63,7 +64,7 @@ class MetaFetcher:
         return schema
 
     def metadata_config(self, metadata_type: str) -> dict[str, Any]:
-        return (METAMAP | SUBRESOURCES_METAMAP)[metadata_type]
+        return (METAMAP | SUBRESOURCES_METAMAP | SUBSUBRESOURCES_METAMAP)[metadata_type]
 
     @property
     def metadata_types(self) -> list[str]:
@@ -72,6 +73,10 @@ class MetaFetcher:
     @property
     def subresources_metadata_types(self) -> list[str]:
         return list(SUBRESOURCES_METAMAP.keys())
+
+    @property
+    def subsubresources_metadata_types(self) -> list[str]:
+        return list(SUBSUBRESOURCES_METAMAP.keys())
 
     def fetch_in_threads(
         self,
@@ -82,6 +87,7 @@ class MetaFetcher:
         num_threads: int,
         required_filters: Optional[list[dict[str, Any]]] = None,
     ):
+        import pudb;pudb.set_trace()
         kwargs_list = []
         for filter_kwargs in required_filters or []:
             kwargs_list.append(dict(call_kwargs, **filter_kwargs))
@@ -128,6 +134,72 @@ class MetaFetcher:
                 if not any_alive:
                     break
 
+    def fetch_in_threads_nested(
+        self,
+        metadata_config: dict,
+        call_kwargs: dict,
+        metadata_type: str,
+        region_name: str,
+        num_threads: int,
+        required_filters: Optional[list[dict[str, Any]]] = None,
+    ):
+        import pudb;pudb.set_trace()
+        filter_key_kwargs = {
+            metadata_config["nested_parent_required_filters"]
+        }
+        kwargs_list = []
+        for filter_kwargs in required_filters or []:
+            kwargs_list.append(dict(call_kwargs, **filter_kwargs))
+
+        def _worker():
+            while True:
+                try:
+                    task_kwargs = task_queue.get(block=False)
+                    # resources = resource_listing(
+                    #     session=self.session,
+                    #     metaname=metadata_type,
+                    #     fetch_method=metadata_config["fetch_method"],
+                    #     response_key=metadata_config.get("response_key"),
+                    #     page_key=metadata_config.get("page_key", ""),
+                    #     call_kwargs=task_kwargs,
+                    #     region_name=region_name,
+                    # )
+                    yield from self.fetch_in_threads(
+                        metadata_config=metadata_config["nested_parent_required_filters"],
+                        call_kwargs=call_kwargs,
+                        metadata_type=metadata_type,
+                        region_name=region_name,
+                        required_filters=required_filters,
+                        num_threads=num_threads,
+                    )
+                    queue.put(list([dict(resource, **task_kwargs) for resource in resources]), timeout=60 * 3)
+                # Ends worker life.
+                except Empty:
+                    break
+
+                except Exception as e:
+                    pass
+
+        task_queue: Queue = Queue(maxsize=len(kwargs_list))
+        queue: Queue = Queue(maxsize=len(kwargs_list))
+
+        for kwarg in kwargs_list:
+            task_queue.put(kwarg)
+
+        threads: List[Thread] = [Thread(target=_worker) for _ in range(num_threads)]
+
+        for thread in threads:
+            thread.start()
+
+        while True:
+            try:
+                yield from queue.get(block=True, timeout=5)
+
+            except Empty:
+                any_alive = any([thread.is_alive() for thread in threads])
+                if not any_alive:
+                    break
+
     def fetch(
         self,
         metadata_type: str,
@@ -139,7 +211,17 @@ class MetaFetcher:
         metadata_config = self.metadata_config(metadata_type)
         call_kwargs = thaw(metadata_config.get("kwargs", {}))
 
-        if "parent_required_filters" in metadata_config:
+        import pudb;pudb.set_trace()
+        if "nested_parent_required_filters" in metadata_config:
+            yield from self.fetch_in_threads_nested(
+                metadata_config=metadata_config,
+                call_kwargs=call_kwargs,
+                metadata_type=metadata_type,
+                region_name=region_name,
+                required_filters=required_filters,
+                num_threads=num_threads,
+            )
+        elif "parent_required_filters" in metadata_config:
             yield from self.fetch_in_threads(
                 metadata_config=metadata_config,
                 call_kwargs=call_kwargs,

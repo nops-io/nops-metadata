@@ -69,6 +69,20 @@ def elbv2_target_groups(metafetcher: MetaFetcher):
     return [r for r in resources]
 
 
+@pytest.fixture
+def eks_nodegroups(metafetcher: MetaFetcher):
+    resources = metafetcher.fetch(metadata_type="eks_nodegroups", region_name="us-west-2")
+    return [r for r in resources]
+
+
+@pytest.fixture
+def eks_nodegroups_metadata(metafetcher: MetaFetcher):
+    import pudb;
+    pudb.set_trace()
+    resources = metafetcher.fetch(metadata_type="eks_nodegroups_metadata", region_name="us-west-2")
+    return [r for r in resources]
+
+
 def test_meta_fetcher_pulling_listing(ecs_clusters):
     assert ecs_clusters
     assert isinstance(ecs_clusters, list)
@@ -116,6 +130,27 @@ def test_meta_fetcher_pulling_resource_details_payload(metafetcher: MetaFetcher,
             assert detail
             assert isinstance(detail, dict)
 
+
+def test_meta_fetcher_pulling_subsubresources(metafetcher: MetaFetcher, eks_nodegroups_metadata: list[dict]):
+    import pudb;pudb.set_trace()
+    for resource_details_type in metafetcher.subsubresources_metadata_types:
+        parent_filters = []
+        metadata_config = metafetcher.metadata_config(metadata_type="eks_nodegroups_metadata")
+        assert metadata_config
+        filter_key = metadata_config["nested_parent_required_filters"]["parent_required_filters"]["filter_key"]
+        parent_field_name = metadata_config["nested_parent_required_filters"]["parent_required_filters"]["parent_filter_field"]
+
+        for resource in eks_nodegroups_metadata[:2]:
+            parent_filters.append({filter_key: resource[parent_field_name]})
+
+        assert len(parent_filters) == 2
+
+        resources = metafetcher.fetch(
+            metadata_type="eks_clusters", region_name="us-west-2", required_filters=parent_filters
+        )
+        for detail in resources:
+            assert detail
+            assert isinstance(detail, dict)
 
 def test_meta_fetcher_custom_kwargs(metafetcher: MetaFetcher, ec2_instances):
 

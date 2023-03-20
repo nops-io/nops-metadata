@@ -75,6 +75,8 @@ def resource_listing(
         client_kwargs["region_name"] = region_name
 
     client = session.client(service, **client_kwargs)
+    import pudb;
+    pudb.set_trace()
 
     if client.can_paginate(fetch_method):
         paginator: Paginator = client.get_paginator(fetch_method)
