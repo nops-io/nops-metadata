@@ -54,6 +54,7 @@ METAMAP = freeze(
         "rds_db_clusters": {"fetch_method": "describe_db_clusters", "response_key": "DBClusters"},
         "rds_db_snapshots": {"fetch_method": "describe_db_snapshots", "response_key": "DBSnapshots"},
         "rds_pending_maintenance_actions": {"fetch_method": "describe_pending_maintenance_actions", "response_key": "PendingMaintenanceActions"},
+        "rds_reserved_db_instances": {"fetch_method": "describe_reserved_db_instances", "response_key": "ReservedDBInstances"},
         "redshift_clusters": {"fetch_method": "describe_clusters", "response_key": "Clusters"},
         "resourcegroupstaggingapi_tag_keys": {"fetch_method": "get_tag_keys", "response_key": "TagKeys"},
         "resourcegroupstaggingapi_resources": {"fetch_method": "get_resources", "response_key": "ResourceTagMappingList"},
