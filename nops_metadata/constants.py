@@ -57,6 +57,7 @@ METAMAP = freeze(
         "redshift_clusters": {"fetch_method": "describe_clusters", "response_key": "Clusters"},
         "resourcegroupstaggingapi_tag_keys": {"fetch_method": "get_tag_keys", "response_key": "TagKeys"},
         "resourcegroupstaggingapi_resources": {"fetch_method": "get_resources", "response_key": "ResourceTagMappingList"},
+        "savingsplans_savings_plans": {"fetch_method": "describe_savings_plans", "response_key": "savingsPlans"},
         "s3_buckets": {"fetch_method": "list_buckets", "response_key": "Buckets"},
         "ssm_compliance_summaries": {"fetch_method": "list_compliance_summaries", "response_key": "ComplianceSummaryItems"},
         "workspaces_workspace_directories": {"fetch_method": "describe_workspace_directories", "response_key": "Directories"},
