@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from pyrsistent import freeze
 
-SINLE_REGION_SERVICES = freeze(["iam", "s3", "cloudfront"])
+SINLE_REGION_SERVICES = freeze(["iam", "s3", "cloudfront", "savingsplans"])
 
 # fmt: off
 METAMAP = freeze(
