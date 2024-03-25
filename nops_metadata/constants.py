@@ -2,12 +2,14 @@ from collections import OrderedDict
 
 from pyrsistent import freeze
 
-SINLE_REGION_SERVICES = freeze(["iam", "s3", "cloudfront", "savingsplans"])
+SINLE_REGION_SERVICES = freeze(["iam", "s3", "cloudfront", "savingsplans", "ce"])
 
 # fmt: off
 METAMAP = freeze(
     OrderedDict({
         "autoscaling_auto_scaling_groups": {"fetch_method": "describe_auto_scaling_groups", "response_key": "AutoScalingGroups"},
+        "ce_reservation_purchase_recommendation": {"fetch_method": "get_reservation_purchase_recommendation", "response_key": "Recommendations"},
+        "ce_savings_plans_purchase_recommendation": {"fetch_method": "get_savings_plans_purchase_recommendation", "response_key": "SavingsPlansPurchaseRecommendation"},
         "cloudformation_stacks": {"fetch_method": "describe_stacks", "response_key": "Stacks"},
         "cloudfront_distributions": {"fetch_method": "list_distributions", "response_key": "Items", "page_key": "DistributionList"},
         "cloudtrail_trails": {"fetch_method": "describe_trails", "response_key": "trailList"},
