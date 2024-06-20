@@ -94,6 +94,14 @@ SUBRESOURCES_METAMAP = freeze(
                 "parent_filter_field": "Name",
                 "parent_metadata_type": "s3_buckets",
             }
+        },
+        "s3_objects": {
+            "fetch_method": "list_objects_v2",
+            "parent_required_filters": {
+                "filter_key": "Bucket",
+                "parent_filter_field": "Name",
+                "parent_metadata_type": "s3_buckets",
+            }
         }
     })
 )
